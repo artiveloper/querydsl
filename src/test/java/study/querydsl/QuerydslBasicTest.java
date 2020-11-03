@@ -7,12 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.entity.Member;
-import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static study.querydsl.entity.QMember.member;
 
 @SpringBootTest
 @Transactional
@@ -41,17 +41,6 @@ public class QuerydslBasicTest {
         em.persist(member2);
         em.persist(member3);
         em.persist(member4);
-/*
-        em.flush();
-        em.clear();
-
-        List<Member> members = em.createQuery("select m from Member m left join fetch m.team", Member.class)
-                .getResultList();
-
-        for (Member member : members) {
-            System.out.println("member = " + member);
-            System.out.println("member = " + member.getTeam());
-        }*/
     }
 
     @Test
@@ -68,8 +57,6 @@ public class QuerydslBasicTest {
 
     @Test
     void startQuerydsl() {
-        QMember member = QMember.member;
-
         Member findMember = queryFactory
                 .select(member)
                 .from(member)
