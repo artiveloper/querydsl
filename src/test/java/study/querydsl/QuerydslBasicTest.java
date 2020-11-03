@@ -10,6 +10,7 @@ import study.querydsl.entity.Member;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static study.querydsl.entity.QMember.member;
@@ -36,11 +37,13 @@ public class QuerydslBasicTest {
         Member member2 = new Member("memberB", 29, teamA);
         Member member3 = new Member("memberC", 12, teamB);
         Member member4 = new Member("memberD", 34, teamB);
+        Member member5 = new Member("memberE", 34, teamB);
 
         em.persist(member1);
         em.persist(member2);
         em.persist(member3);
         em.persist(member4);
+        em.persist(member5);
     }
 
     @Test
@@ -64,6 +67,20 @@ public class QuerydslBasicTest {
                 .fetchOne();
 
         assertThat(findMember.getUsername()).isEqualTo("memberA");
+    }
+
+    @Test
+    void sort() {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .where(member.age.gt(10))
+                .orderBy(member.age.desc(), member.username.asc())
+                .fetch();
+
+        assertThat(result.get(0).getUsername()).isEqualTo("memberD");
+        assertThat(result.get(1).getUsername()).isEqualTo("memberE");
+        assertThat(result.get(2).getUsername()).isEqualTo("memberB");
+        assertThat(result.get(3).getUsername()).isEqualTo("memberC");
     }
 
 }
