@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.iterable;
 import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
 
@@ -156,4 +157,72 @@ public class QuerydslBasicTest {
         assertThat(teamB.get(member.age.avg())).isEqualTo(26.666666666666668);
     }
 
+    /**
+     * 팀 A에 소속된 모든 회원
+     */
+    @Test
+    void join() {
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("TEAM A"))
+                .fetch();
+
+        assertThat(result).extracting("username").containsExactly("memberA", "memberB");
+    }
+
+    /**
+     * 세타 조인
+     * 회원의 이름이 팀 이름과 같은 회원 조회
+     */
+    @Test
+    void theta_join() {
+        em.persist(new Member("TEAM A"));
+        em.persist(new Member("TEAM B"));
+        em.persist(new Member("TEAM C"));
+
+        List<Member> result = queryFactory
+                .select(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+
+        assertThat(result).extracting("username").containsExactly("TEAM A", "TEAM B");
+    }
+
+    /**
+     * 회원과 팀을 조인하면서,
+     * 팀 이름이 TEAM A 인 팀만 조인.
+     * 회원은 모두 조회
+     */
+    @Test
+    void join_on_filtering() {
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(member.team, team).on(team.name.eq("TEAM A"))
+                .fetch();
+    }
+
+    /**
+     * 세타 조인
+     * 연관관계 없는 엔티티 외부 조인
+     * 회원의 이름이 팀 이름과 같은 대상 외부 조인
+     */
+    @Test
+    void theta_join_no_relation() {
+        em.persist(new Member("TEAM A"));
+        em.persist(new Member("TEAM B"));
+        em.persist(new Member("TEAM C"));
+
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name))
+                .fetch();
+
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
 }
