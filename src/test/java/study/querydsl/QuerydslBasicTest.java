@@ -535,4 +535,45 @@ public class QuerydslBasicTest {
         return member.username.eq(usernameParam).and(member.age.eq(ageParam));
     }
 
+    /*
+        수정, 삭제 벌크 연산
+     */
+    @Test
+    void bulkUpdate() {
+        // MemberA, MemberC -> 비회원.
+        // 나머지 유지
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory.
+                selectFrom(member)
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+
+    @Test
+    void bulkAdd() {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    void bulkDelete() {
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
+
 }
