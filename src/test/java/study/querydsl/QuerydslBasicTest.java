@@ -2,6 +2,7 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -260,6 +261,10 @@ public class QuerydslBasicTest {
         assertThat(loaded).isTrue();
     }
 
+    /*
+        서브쿼리
+     */
+
     /**
      * 나이가 가장 많은 회원 조회
      */
@@ -277,6 +282,40 @@ public class QuerydslBasicTest {
                 .fetch();
 
         assertThat(result).extracting("age").contains(34);
+    }
+
+    /*
+        Case 문
+     */
+    @Test
+    void basicCase() {
+        List<String> result = queryFactory
+                .select(member.age
+                        .when(10).then("십대")
+                        .when(20).then("이십대")
+                        .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    void complexCase() {
+        List<String> result = queryFactory
+                .select(
+                        new CaseBuilder()
+                                .when(member.age.between(10, 20)).then("10~20살")
+                                .when(member.age.between(21, 30)).then("20~30살")
+                                .otherwise("기타"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
     }
 
 }
